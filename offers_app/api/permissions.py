@@ -7,4 +7,12 @@ class IsBusinessUser(BasePermission):
     def has_permission(self, request, view):
         profile = getattr(request.user, "profile", None)
 
-        return profile is not None and profile.type == UserProfile.UserType.BUSINESS
+        return (
+            profile is not None
+            and profile.type == UserProfile.UserType.BUSINESS
+        )
+
+
+class IsOfferOwner(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user

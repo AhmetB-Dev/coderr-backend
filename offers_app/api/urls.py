@@ -1,9 +1,18 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import OfferViewSet
+from .views import OfferDetailView, OfferViewSet
 
 
 router = DefaultRouter()
 router.register("offers", OfferViewSet, basename="offer")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path(
+        "offerdetails/<int:pk>/",
+        OfferDetailView.as_view(),
+        name="offer-detail",
+    ),
+]
+
+urlpatterns += router.urls

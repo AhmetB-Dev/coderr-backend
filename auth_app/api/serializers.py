@@ -1,7 +1,8 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
+
 from auth_app.models import UserProfile
 
 
@@ -99,7 +100,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs["repeated_password"]:
-            raise serializers.ValidationError({"password": "Passwords do not match."})
+            raise serializers.ValidationError(
+                {"password": "Passwords do not match."}
+            )
         return attrs
 
     def create(self, validated_data):
