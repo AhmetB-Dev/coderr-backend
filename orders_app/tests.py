@@ -150,6 +150,14 @@ class OrderApiTests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_unknown_order_update_returns_404(self):
+        self._authenticate(self.customer)
+        url = reverse("order-detail", kwargs={"pk": 99999})
+        response = self.client.patch(
+            url, {"status": "completed"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_invalid_order_status_is_rejected(self):
         self._authenticate(self.business)
         response = self.client.patch(

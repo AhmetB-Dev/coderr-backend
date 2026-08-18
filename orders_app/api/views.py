@@ -11,7 +11,6 @@ from auth_app.models import UserProfile
 from orders_app.models import Order
 
 from .permissions import (
-    IsBusinessUser,
     IsCustomerUser,
     IsOrderBusinessUser,
     IsStaffUser,
@@ -79,7 +78,7 @@ class OrderViewSet(ModelViewSet):
         permission_map = {
             "create": [IsAuthenticated, IsCustomerUser],
             "partial_update": [
-                IsAuthenticated, IsBusinessUser, IsOrderBusinessUser
+                IsAuthenticated, IsOrderBusinessUser
             ],
             "destroy": [IsAuthenticated, IsStaffUser],
         }
@@ -87,7 +86,9 @@ class OrderViewSet(ModelViewSet):
         return [permission() for permission in classes]
 
     def get_queryset(self):
-        """Return orders visible to the current user or staff deletion."""
+        """Return the queryset appropriate for the current order action."""
+        if self.action == "partial_update":
+            return Order.objects.all()
         if self.action == "destroy" and self.request.user.is_staff:
             return Order.objects.all()
         user = self.request.user

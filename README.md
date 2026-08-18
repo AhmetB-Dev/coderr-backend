@@ -126,6 +126,7 @@ http://127.0.0.1:8000/admin/
 - SQLite
 - Pillow
 - django-cors-headers
+- django-filter
 - python-dotenv
 - Coverage.py
 

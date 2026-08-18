@@ -2,7 +2,6 @@ from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from auth_app.models import UserProfile
 
@@ -38,45 +37,41 @@ class UserProfileDetailView(generics.RetrieveUpdateAPIView):
 
 
 class BusinessProfileListView(generics.ListAPIView):
+    queryset = UserProfile.objects.filter(
+        type=UserProfile.UserType.BUSINESS
+    ).select_related("user")
     serializer_class = UserProfileListSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        """Return all business profiles with their related users."""
-        return UserProfile.objects.filter(
-            type=UserProfile.UserType.BUSINESS
-        ).select_related("user")
 
 
 class CustomerProfileListView(generics.ListAPIView):
+    queryset = UserProfile.objects.filter(
+        type=UserProfile.UserType.CUSTOMER
+    ).select_related("user")
     serializer_class = UserProfileListSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        """Return all customer profiles with their related users."""
-        return UserProfile.objects.filter(
-            type=UserProfile.UserType.CUSTOMER
-        ).select_related("user")
 
-
-class LoginView(APIView):
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
         """Authenticate a user and return the existing or new token."""
-        serializer = LoginSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
         return Response(_auth_payload(user, token))
 
 
-class RegistrationView(APIView):
+class RegistrationView(generics.GenericAPIView):
+    serializer_class = RegistrationSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
         """Register a user and return the created authentication token."""
-        serializer = RegistrationSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         token = Token.objects.get(user=user)
