@@ -6,6 +6,13 @@ from orders_app.models import Order
 
 
 class OrderStatusSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        read_only=True,
+    )
+
     class Meta:
         model = Order
         fields = [
@@ -35,6 +42,14 @@ class OrderStatusSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def validate(self, attrs):
+        invalid_fields = set(self.initial_data) - {"status"}
+
+        if invalid_fields:
+            raise serializers.ValidationError("Only the status field can be updated.")
+
+        return attrs
 
 
 class OrderSerializer(serializers.ModelSerializer):

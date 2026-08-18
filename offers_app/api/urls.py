@@ -11,7 +11,7 @@ urlpatterns = [
     path(
         "offerdetails/<int:pk>/",
         OfferDetailView.as_view(),
-        name="offer-detail",
+        name="offerdetail-detail",
     ),
 ]
 

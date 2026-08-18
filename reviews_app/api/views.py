@@ -1,11 +1,11 @@
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+
+from reviews_app.models import Review
+
 from .permissions import IsCustomerUser, IsReviewOwner
 from .serializers import ReviewSerializer, ReviewUpdateSerializer
-from reviews_app.models import Review
-from rest_framework.filters import OrderingFilter
-from .permissions import IsCustomerUser
-from .serializers import ReviewSerializer
 
 
 class ReviewViewSet(ModelViewSet):
@@ -23,9 +23,16 @@ class ReviewViewSet(ModelViewSet):
         "options",
     ]
 
+    def get_serializer_class(self):
+        if self.action == "partial_update":
+            return ReviewUpdateSerializer
+        return ReviewSerializer
+
     def get_permissions(self):
         if self.action == "create":
             return [IsAuthenticated(), IsCustomerUser()]
+        if self.action in ["partial_update", "destroy"]:
+            return [IsAuthenticated(), IsReviewOwner()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
@@ -47,17 +54,3 @@ class ReviewViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)
-
-    def get_serializer_class(self):
-        if self.action == "partial_update":
-            return ReviewUpdateSerializer
-        return ReviewSerializer
-
-    def get_permissions(self):
-        if self.action == "create":
-            return [IsAuthenticated(), IsCustomerUser()]
-
-        if self.action in ["partial_update", "destroy"]:
-            return [IsAuthenticated(), IsReviewOwner()]
-
-        return [IsAuthenticated()]
