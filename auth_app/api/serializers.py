@@ -7,7 +7,10 @@ from auth_app.models import UserProfile
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(source="user.id", read_only=True)
+    user = serializers.IntegerField(
+        source="user.id",
+        read_only=True,
+    )
     username = serializers.CharField(
         source="user.username",
         read_only=True,
@@ -43,10 +46,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "email",
             "created_at",
         ]
-        read_only_fields = [
-            "type",
-            "created_at",
-        ]
+        read_only_fields = ["type", "created_at"]
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", {})
@@ -56,8 +56,41 @@ class UserProfileSerializer(serializers.ModelSerializer):
             setattr(user, field, value)
 
         user.save()
-
         return super().update(instance, validated_data)
+
+
+class UserProfileListSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(
+        source="user.id",
+        read_only=True,
+    )
+    username = serializers.CharField(
+        source="user.username",
+        read_only=True,
+    )
+    first_name = serializers.CharField(
+        source="user.first_name",
+        read_only=True,
+    )
+    last_name = serializers.CharField(
+        source="user.last_name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "location",
+            "tel",
+            "description",
+            "working_hours",
+            "type",
+        ]
 
 
 class LoginSerializer(serializers.Serializer):

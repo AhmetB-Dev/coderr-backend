@@ -128,6 +128,16 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id"]
 
+    def validate_details(self, value):
+        offer_types = [detail.get("offer_type") for detail in value]
+        if any(offer_type is None for offer_type in offer_types):
+            raise serializers.ValidationError(
+                "Each detail requires an offer_type."
+            )
+        if len(offer_types) != len(set(offer_types)):
+            raise serializers.ValidationError("Duplicate offer_type values are not allowed.")
+        return value
+
     @transaction.atomic
     def update(self, instance, validated_data):
         details_data = validated_data.pop("details", [])

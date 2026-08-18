@@ -242,3 +242,30 @@ class OfferApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], detail.id)
+
+    def test_offer_update_requires_offer_type_for_details(self):
+        self._authenticate(self.business)
+        response = self.client.patch(
+            reverse("offer-detail", kwargs={"pk": self.offer.id}),
+            {"details": [{"price": 150}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_offer_update_rejects_invalid_offer_type(self):
+        self._authenticate(self.business)
+        response = self.client.patch(
+            reverse("offer-detail", kwargs={"pk": self.offer.id}),
+            {"details": [{"offer_type": "gold", "price": 150}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_offer_update_rejects_invalid_revisions(self):
+        self._authenticate(self.business)
+        response = self.client.patch(
+            reverse("offer-detail", kwargs={"pk": self.offer.id}),
+            {"details": [{"offer_type": "basic", "revisions": -2}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

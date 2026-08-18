@@ -10,6 +10,7 @@ from .permissions import IsProfileOwnerOrReadOnly
 from .serializers import (
     LoginSerializer,
     RegistrationSerializer,
+    UserProfileListSerializer,
     UserProfileSerializer,
 )
 
@@ -36,7 +37,7 @@ class UserProfileDetailView(generics.RetrieveUpdateAPIView):
 
 
 class BusinessProfileListView(generics.ListAPIView):
-    serializer_class = UserProfileSerializer
+    serializer_class = UserProfileListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -46,7 +47,7 @@ class BusinessProfileListView(generics.ListAPIView):
 
 
 class CustomerProfileListView(generics.ListAPIView):
-    serializer_class = UserProfileSerializer
+    serializer_class = UserProfileListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
