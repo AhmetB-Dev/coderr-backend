@@ -42,6 +42,7 @@ class OfferViewSet(ModelViewSet):
     ]
 
     def get_serializer_class(self):
+        """Select the serializer required for the current action."""
         if self.action == "create":
             return OfferCreateSerializer
 
@@ -54,6 +55,7 @@ class OfferViewSet(ModelViewSet):
         return OfferListSerializer
 
     def get_permissions(self):
+        """Select permissions required for the current action."""
         if self.action == "create":
             return [IsAuthenticated(), IsBusinessUser()]
 
@@ -66,6 +68,7 @@ class OfferViewSet(ModelViewSet):
         return [AllowAny()]
 
     def get_queryset(self):
+        """Build and filter the offer queryset from query parameters."""
         params = OfferFilterSerializer(data=self.request.query_params)
         params.is_valid(raise_exception=True)
         self.filter_params = params.validated_data
@@ -76,6 +79,7 @@ class OfferViewSet(ModelViewSet):
         return self._filter_delivery_time(queryset)
 
     def _base_queryset(self):
+        """Return offers with related data and minimum detail values."""
         return (
             Offer.objects.select_related("user")
             .prefetch_related("details")
@@ -87,18 +91,21 @@ class OfferViewSet(ModelViewSet):
         )
 
     def _filter_creator(self, queryset):
+        """Filter offers by creator when a creator ID is supplied."""
         creator_id = self.filter_params.get("creator_id")
         if creator_id:
             queryset = queryset.filter(user_id=creator_id)
         return queryset
 
     def _filter_min_price(self, queryset):
+        """Filter offers by their calculated minimum price."""
         min_price = self.filter_params.get("min_price")
         if min_price is not None:
             queryset = queryset.filter(min_price__gte=min_price)
         return queryset
 
     def _filter_delivery_time(self, queryset):
+        """Filter offers by their minimum delivery time."""
         max_time = self.filter_params.get("max_delivery_time")
         if max_time is not None:
             queryset = queryset.filter(min_delivery_time__lte=max_time)

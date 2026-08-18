@@ -5,6 +5,7 @@ from auth_app.models import UserProfile
 
 class IsCustomerUser(BasePermission):
     def has_permission(self, request, view):
+        """Allow access only to authenticated customer profiles."""
         profile = getattr(request.user, "profile", None)
         return (
             profile is not None
@@ -14,4 +15,5 @@ class IsCustomerUser(BasePermission):
 
 class IsReviewOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
+        """Allow review changes only to the review author."""
         return obj.reviewer == request.user

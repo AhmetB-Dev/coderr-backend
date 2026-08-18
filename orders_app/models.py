@@ -44,4 +44,5 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a readable order label with its customer."""
         return f"{self.title} - {self.customer_user.username}"

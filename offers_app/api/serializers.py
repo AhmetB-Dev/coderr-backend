@@ -48,6 +48,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def validate_revisions(self, value):
+        """Allow unlimited revisions as -1 or non-negative values."""
         if value < -1:
             raise serializers.ValidationError(
                 "Revisions must be -1 or greater."
@@ -55,6 +56,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         return value
 
     def validate_features(self, value):
+        """Ensure features are provided as a list of strings."""
         if not isinstance(value, list):
             raise serializers.ValidationError("Features must be a list.")
         if not all(isinstance(item, str) for item in value):
@@ -92,6 +94,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def validate_details(self, value):
+        """Require exactly one detail for each supported offer type."""
         required_types = {"basic", "standard", "premium"}
         if len(value) != 3:
             raise serializers.ValidationError(
@@ -106,6 +109,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        """Create an offer and all of its details atomically."""
         details_data = validated_data.pop("details")
         offer = Offer.objects.create(
             user=self.context["request"].user,
@@ -134,6 +138,7 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def validate_details(self, value):
+        """Reject missing or duplicate offer types during updates."""
         offer_types = [detail.get("offer_type") for detail in value]
         if any(offer_type is None for offer_type in offer_types):
             raise serializers.ValidationError(
@@ -147,6 +152,7 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
+        """Update an offer and any supplied nested details atomically."""
         details_data = validated_data.pop("details", [])
 
         for field, value in validated_data.items():
@@ -158,6 +164,7 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def _update_details(self, offer, details_data):
+        """Apply partial changes to existing offer details."""
         for detail_data in details_data:
             offer_type = detail_data.pop("offer_type")
             detail = offer.details.get(offer_type=offer_type)
@@ -189,6 +196,7 @@ class OfferDetailLinkSerializer(serializers.ModelSerializer):
         ]
 
     def get_url(self, obj):
+        """Return the API URL for an offer detail."""
         request = self.context.get("request")
         path = f"/api/offerdetails/{obj.id}/"
 

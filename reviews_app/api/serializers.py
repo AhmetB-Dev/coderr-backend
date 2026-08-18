@@ -32,6 +32,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         ]
 
     def validate_business_user(self, business_user):
+        """Prevent a customer from reviewing a business twice."""
         reviewer = self.context["request"].user
         exists = Review.objects.filter(
             reviewer=reviewer,
@@ -67,6 +68,7 @@ class ReviewUpdateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
+        """Reject updates to fields other than rating and description."""
         invalid_fields = set(self.initial_data) - {
             "rating",
             "description",

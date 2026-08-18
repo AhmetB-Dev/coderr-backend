@@ -49,6 +49,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["type", "created_at"]
 
     def update(self, instance, validated_data):
+        """Update profile fields together with writable user fields."""
         user_data = validated_data.pop("user", {})
         user = instance.user
 
@@ -98,6 +99,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        """Authenticate the supplied username and password."""
         user = authenticate(
             username=attrs["username"],
             password=attrs["password"],
@@ -132,6 +134,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
+        """Ensure both submitted passwords match."""
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError(
                 {"password": "Passwords do not match."}
@@ -139,16 +142,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create the user, profile, and authentication token."""
         profile_type = validated_data.pop("type")
         validated_data.pop("repeated_password")
-
         user = User.objects.create_user(**validated_data)
-
         UserProfile.objects.create(
             user=user,
             type=profile_type,
         )
-
         Token.objects.create(user=user)
-
         return user

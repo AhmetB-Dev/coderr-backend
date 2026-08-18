@@ -33,4 +33,5 @@ class Review(models.Model):
         ]
 
     def __str__(self):
+        """Return a readable reviewer-to-business label."""
         return f"{self.reviewer.username} -> {self.business_user.username}"

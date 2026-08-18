@@ -44,4 +44,5 @@ class UserProfile(models.Model):
     )
 
     def __str__(self):
+        """Return the username represented by this profile."""
         return self.user.username

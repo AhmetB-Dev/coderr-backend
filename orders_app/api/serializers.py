@@ -45,6 +45,7 @@ class OrderStatusSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
+        """Reject updates to fields other than order status."""
         invalid_fields = set(self.initial_data) - {"status"}
 
         if invalid_fields:
@@ -96,6 +97,7 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        """Create an order snapshot from the selected offer detail."""
         detail = get_object_or_404(
             OfferDetail.objects.select_related("offer__user"),
             pk=validated_data["offer_detail_id"],
@@ -108,6 +110,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _snapshot_data(detail):
+        """Build immutable order data from an offer detail."""
         return {
             "title": detail.title,
             "revisions": detail.revisions,

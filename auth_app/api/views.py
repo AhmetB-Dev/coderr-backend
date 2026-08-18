@@ -16,6 +16,7 @@ from .serializers import (
 
 
 def _auth_payload(user, token):
+    """Build the authentication response payload for a user."""
     return {
         "token": token.key,
         "username": user.username,
@@ -41,6 +42,7 @@ class BusinessProfileListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Return all business profiles with their related users."""
         return UserProfile.objects.filter(
             type=UserProfile.UserType.BUSINESS
         ).select_related("user")
@@ -51,6 +53,7 @@ class CustomerProfileListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """Return all customer profiles with their related users."""
         return UserProfile.objects.filter(
             type=UserProfile.UserType.CUSTOMER
         ).select_related("user")
@@ -60,6 +63,7 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Authenticate a user and return the existing or new token."""
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -71,6 +75,7 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Register a user and return the created authentication token."""
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()

@@ -13,6 +13,7 @@ class BaseInfoView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        """Return aggregate public statistics for the platform."""
         average = Review.objects.aggregate(average=Avg("rating"))["average"]
 
         return Response(
