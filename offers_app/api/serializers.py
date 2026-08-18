@@ -5,6 +5,27 @@ from rest_framework import serializers
 from offers_app.models import Offer, OfferDetail
 
 
+class OfferFilterSerializer(serializers.Serializer):
+    creator_id = serializers.IntegerField(
+        required=False,
+        min_value=1,
+    )
+    min_price = serializers.DecimalField(
+        required=False,
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+    )
+    max_delivery_time = serializers.IntegerField(
+        required=False,
+        min_value=0,
+    )
+    page_size = serializers.IntegerField(
+        required=False,
+        min_value=1,
+    )
+
+
 class OfferDetailSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(
         max_digits=10,
@@ -85,10 +106,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             user=self.context["request"].user,
             **validated_data,
         )
-        details = [
-            OfferDetail(offer=offer, **data)
-            for data in details_data
-        ]
+        details = [OfferDetail(offer=offer, **data) for data in details_data]
         OfferDetail.objects.bulk_create(details)
         return offer
 

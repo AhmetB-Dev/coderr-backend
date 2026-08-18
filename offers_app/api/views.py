@@ -11,6 +11,7 @@ from .permissions import IsBusinessUser, IsOfferOwner
 from .serializers import (
     OfferCreateSerializer,
     OfferDetailSerializer,
+    OfferFilterSerializer,
     OfferListSerializer,
     OfferRetrieveSerializer,
     OfferUpdateSerializer,
@@ -64,6 +65,10 @@ class OfferViewSet(ModelViewSet):
         return [AllowAny()]
 
     def get_queryset(self):
+        params = OfferFilterSerializer(data=self.request.query_params)
+        params.is_valid(raise_exception=True)
+        self.filter_params = params.validated_data
+
         queryset = self._base_queryset()
         queryset = self._filter_creator(queryset)
         queryset = self._filter_min_price(queryset)
@@ -81,19 +86,19 @@ class OfferViewSet(ModelViewSet):
         )
 
     def _filter_creator(self, queryset):
-        creator_id = self.request.query_params.get("creator_id")
+        creator_id = self.filter_params.get("creator_id")
         if creator_id:
             queryset = queryset.filter(user_id=creator_id)
         return queryset
 
     def _filter_min_price(self, queryset):
-        min_price = self.request.query_params.get("min_price")
-        if min_price:
+        min_price = self.filter_params.get("min_price")
+        if min_price is not None:
             queryset = queryset.filter(min_price__gte=min_price)
         return queryset
 
     def _filter_delivery_time(self, queryset):
-        max_time = self.request.query_params.get("max_delivery_time")
-        if max_time:
+        max_time = self.filter_params.get("max_delivery_time")
+        if max_time is not None:
             queryset = queryset.filter(min_delivery_time__lte=max_time)
         return queryset
