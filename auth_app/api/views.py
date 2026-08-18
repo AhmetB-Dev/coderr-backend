@@ -14,6 +14,15 @@ from .serializers import (
 )
 
 
+def _auth_payload(user, token):
+    return {
+        "token": token.key,
+        "username": user.username,
+        "email": user.email,
+        "user_id": user.id,
+    }
+
+
 class UserProfileDetailView(generics.RetrieveUpdateAPIView):
     queryset = UserProfile.objects.select_related("user")
     serializer_class = UserProfileSerializer
@@ -52,18 +61,9 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
-
-        return Response(
-            {
-                "token": token.key,
-                "username": user.username,
-                "email": user.email,
-                "user_id": user.id,
-            }
-        )
+        return Response(_auth_payload(user, token))
 
 
 class RegistrationView(APIView):
@@ -72,16 +72,9 @@ class RegistrationView(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.save()
         token = Token.objects.get(user=user)
-
         return Response(
-            {
-                "token": token.key,
-                "username": user.username,
-                "email": user.email,
-                "user_id": user.id,
-            },
+            _auth_payload(user, token),
             status=status.HTTP_201_CREATED,
         )

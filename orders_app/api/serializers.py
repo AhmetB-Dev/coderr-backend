@@ -100,10 +100,16 @@ class OrderSerializer(serializers.ModelSerializer):
         return Order.objects.create(
             customer_user=self.context["request"].user,
             business_user=detail.offer.user,
-            title=detail.title,
-            revisions=detail.revisions,
-            delivery_time_in_days=detail.delivery_time_in_days,
-            price=detail.price,
-            features=detail.features,
-            offer_type=detail.offer_type,
+            **self._snapshot_data(detail),
         )
+
+    @staticmethod
+    def _snapshot_data(detail):
+        return {
+            "title": detail.title,
+            "revisions": detail.revisions,
+            "delivery_time_in_days": detail.delivery_time_in_days,
+            "price": detail.price,
+            "features": detail.features,
+            "offer_type": detail.offer_type,
+        }

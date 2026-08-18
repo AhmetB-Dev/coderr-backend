@@ -66,37 +66,30 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def validate_details(self, value):
+        required_types = {"basic", "standard", "premium"}
         if len(value) != 3:
             raise serializers.ValidationError(
                 "An offer must contain exactly three details."
             )
-
         offer_types = {detail["offer_type"] for detail in value}
-        required_types = {"basic", "standard", "premium"}
-
         if offer_types != required_types:
             raise serializers.ValidationError(
                 "Details must contain basic, standard and premium."
             )
-
         return value
 
     @transaction.atomic
     def create(self, validated_data):
         details_data = validated_data.pop("details")
-        user = self.context["request"].user
-
         offer = Offer.objects.create(
-            user=user,
+            user=self.context["request"].user,
             **validated_data,
         )
-
-        for detail_data in details_data:
-            OfferDetail.objects.create(
-                offer=offer,
-                **detail_data,
-            )
-
+        details = [
+            OfferDetail(offer=offer, **data)
+            for data in details_data
+        ]
+        OfferDetail.objects.bulk_create(details)
         return offer
 
 
