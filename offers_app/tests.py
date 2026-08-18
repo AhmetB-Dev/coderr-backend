@@ -1,11 +1,48 @@
+from copy import deepcopy
+
 from django.contrib.auth.models import User
 from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from auth_app.models import UserProfile
 from offers_app.models import Offer, OfferDetail
+
+
+DETAIL_DATA = [
+    {
+        "title": "Basic",
+        "revisions": 2,
+        "delivery_time_in_days": 5,
+        "price": 100,
+        "features": ["Logo"],
+        "offer_type": "basic",
+    },
+    {
+        "title": "Standard",
+        "revisions": 5,
+        "delivery_time_in_days": 7,
+        "price": 200,
+        "features": ["Logo", "Flyer"],
+        "offer_type": "standard",
+    },
+    {
+        "title": "Premium",
+        "revisions": 10,
+        "delivery_time_in_days": 10,
+        "price": 500,
+        "features": ["Logo", "Flyer", "Website"],
+        "offer_type": "premium",
+    },
+]
+
+OFFER_PAYLOAD = {
+    "title": "New Offer",
+    "description": "New description",
+    "details": DETAIL_DATA,
+}
 
 
 class OfferApiTests(APITestCase):
@@ -25,10 +62,7 @@ class OfferApiTests(APITestCase):
             username=username,
             password="TestPassword123!",
         )
-        UserProfile.objects.create(
-            user=user,
-            type=profile_type,
-        )
+        UserProfile.objects.create(user=user, type=profile_type)
         Token.objects.create(user=user)
         return user
 
@@ -46,117 +80,67 @@ class OfferApiTests(APITestCase):
         return offer
 
     def _create_details(self, offer):
-        detail_data = [
-            ("Basic", 100, 5, "basic"),
-            ("Standard", 200, 7, "standard"),
-            ("Premium", 500, 10, "premium"),
+        details = [
+            OfferDetail(offer=offer, **data)
+            for data in deepcopy(DETAIL_DATA)
         ]
-
-        for title, price, delivery, offer_type in detail_data:
-            OfferDetail.objects.create(
-                offer=offer,
-                title=title,
-                revisions=2,
-                delivery_time_in_days=delivery,
-                price=price,
-                features=["Feature"],
-                offer_type=offer_type,
-            )
+        OfferDetail.objects.bulk_create(details)
 
     def _offer_payload(self):
-        return {
-            "title": "New Offer",
-            "description": "New description",
-            "details": [
-                {
-                    "title": "Basic",
-                    "revisions": 2,
-                    "delivery_time_in_days": 5,
-                    "price": 100,
-                    "features": ["Logo"],
-                    "offer_type": "basic",
-                },
-                {
-                    "title": "Standard",
-                    "revisions": 5,
-                    "delivery_time_in_days": 7,
-                    "price": 200,
-                    "features": ["Logo", "Flyer"],
-                    "offer_type": "standard",
-                },
-                {
-                    "title": "Premium",
-                    "revisions": 10,
-                    "delivery_time_in_days": 10,
-                    "price": 500,
-                    "features": ["Logo", "Flyer", "Website"],
-                    "offer_type": "premium",
-                },
-            ],
-        }
+        return deepcopy(OFFER_PAYLOAD)
+
+    def _offer_url(self):
+        return reverse("offer-detail", kwargs={"pk": self.offer.id})
+
+    def _patch_offer(self, payload):
+        return self.client.patch(
+            self._offer_url(),
+            payload,
+            format="json",
+        )
 
     def test_offer_list_is_public(self):
         response = self.client.get(reverse("offer-list"))
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
 
     def test_business_can_create_offer(self):
         self._authenticate(self.business)
-
         response = self.client.post(
             reverse("offer-list"),
             self._offer_payload(),
             format="json",
         )
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(response.data["details"]), 3)
 
     def test_customer_cannot_create_offer(self):
         self._authenticate(self.customer)
-
         response = self.client.post(
             reverse("offer-list"),
             self._offer_payload(),
             format="json",
         )
-
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_offer_requires_exactly_three_details(self):
         self._authenticate(self.business)
         payload = self._offer_payload()
         payload["details"] = payload["details"][:2]
-
         response = self.client.post(
             reverse("offer-list"),
             payload,
             format="json",
         )
-
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_offer_detail_requires_authentication(self):
-        response = self.client.get(
-            reverse(
-                "offer-detail",
-                kwargs={"pk": self.offer.id},
-            )
-        )
-
+        response = self.client.get(self._offer_url())
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_authenticated_user_can_retrieve_offer(self):
         self._authenticate(self.customer)
-
-        response = self.client.get(
-            reverse(
-                "offer-detail",
-                kwargs={"pk": self.offer.id},
-            )
-        )
-
+        response = self.client.get(self._offer_url())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["min_price"], 100)
         self.assertEqual(response.data["min_delivery_time"], 5)
@@ -164,108 +148,53 @@ class OfferApiTests(APITestCase):
     def test_owner_can_update_offer_detail_without_changing_id(self):
         self._authenticate(self.business)
         basic = self.offer.details.get(offer_type="basic")
-
-        response = self.client.patch(
-            reverse(
-                "offer-detail",
-                kwargs={"pk": self.offer.id},
-            ),
-            {
-                "details": [
-                    {
-                        "offer_type": "basic",
-                        "price": 150,
-                    }
-                ]
-            },
-            format="json",
+        response = self._patch_offer(
+            {"details": [{"offer_type": "basic", "price": 150}]}
         )
-
         basic.refresh_from_db()
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(basic.price, 150)
-        self.assertEqual(
-            basic.id,
-            self.offer.details.get(offer_type="basic").id,
-        )
+        current = self.offer.details.get(offer_type="basic")
+        self.assertEqual(basic.id, current.id)
 
     def test_non_owner_cannot_update_offer(self):
         self._authenticate(self.customer)
-
-        response = self.client.patch(
-            reverse(
-                "offer-detail",
-                kwargs={"pk": self.offer.id},
-            ),
-            {"title": "Forbidden change"},
-            format="json",
-        )
-
+        response = self._patch_offer({"title": "Forbidden change"})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_owner_can_delete_offer(self):
         self._authenticate(self.business)
-
-        response = self.client.delete(
-            reverse(
-                "offer-detail",
-                kwargs={"pk": self.offer.id},
-            )
-        )
-
+        response = self.client.delete(self._offer_url())
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Offer.objects.filter(pk=self.offer.id).exists())
 
     def test_offerdetail_requires_authentication(self):
         detail = self.offer.details.first()
-
-        response = self.client.get(
-            reverse(
-                "offerdetail-detail",
-                kwargs={"pk": detail.id},
-            )
-        )
-
+        url = reverse("offerdetail-detail", kwargs={"pk": detail.id})
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_authenticated_user_can_get_offerdetail(self):
         self._authenticate(self.customer)
         detail = self.offer.details.first()
-
-        response = self.client.get(
-            reverse(
-                "offerdetail-detail",
-                kwargs={"pk": detail.id},
-            )
-        )
-
+        url = reverse("offerdetail-detail", kwargs={"pk": detail.id})
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], detail.id)
 
     def test_offer_update_requires_offer_type_for_details(self):
         self._authenticate(self.business)
-        response = self.client.patch(
-            reverse("offer-detail", kwargs={"pk": self.offer.id}),
-            {"details": [{"price": 150}]},
-            format="json",
-        )
+        response = self._patch_offer({"details": [{"price": 150}]})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_offer_update_rejects_invalid_offer_type(self):
         self._authenticate(self.business)
-        response = self.client.patch(
-            reverse("offer-detail", kwargs={"pk": self.offer.id}),
-            {"details": [{"offer_type": "gold", "price": 150}]},
-            format="json",
-        )
+        details = [{"offer_type": "gold", "price": 150}]
+        response = self._patch_offer({"details": details})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_offer_update_rejects_invalid_revisions(self):
         self._authenticate(self.business)
-        response = self.client.patch(
-            reverse("offer-detail", kwargs={"pk": self.offer.id}),
-            {"details": [{"offer_type": "basic", "revisions": -2}]},
-            format="json",
-        )
+        details = [{"offer_type": "basic", "revisions": -2}]
+        response = self._patch_offer({"details": details})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

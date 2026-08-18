@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import transaction
+
 from rest_framework import serializers
 
 from offers_app.models import Offer, OfferDetail
@@ -48,14 +49,18 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
     def validate_revisions(self, value):
         if value < -1:
-            raise serializers.ValidationError("Revisions must be -1 or greater.")
+            raise serializers.ValidationError(
+                "Revisions must be -1 or greater."
+            )
         return value
 
     def validate_features(self, value):
         if not isinstance(value, list):
             raise serializers.ValidationError("Features must be a list.")
         if not all(isinstance(item, str) for item in value):
-            raise serializers.ValidationError("Every feature must be a string.")
+            raise serializers.ValidationError(
+                "Every feature must be a string."
+            )
         return value
 
 
@@ -135,7 +140,9 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
                 "Each detail requires an offer_type."
             )
         if len(offer_types) != len(set(offer_types)):
-            raise serializers.ValidationError("Duplicate offer_type values are not allowed.")
+            raise serializers.ValidationError(
+                "Duplicate offer_type values are not allowed."
+            )
         return value
 
     @transaction.atomic

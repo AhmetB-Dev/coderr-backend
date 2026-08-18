@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+
 from rest_framework import serializers
 
 from auth_app.models import UserProfile
@@ -7,7 +8,9 @@ from reviews_app.models import Review
 
 class ReviewSerializer(serializers.ModelSerializer):
     business_user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.filter(profile__type=UserProfile.UserType.BUSINESS)
+        queryset=User.objects.filter(
+            profile__type=UserProfile.UserType.BUSINESS
+        )
     )
 
     class Meta:

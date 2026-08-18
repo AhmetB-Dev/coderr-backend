@@ -6,13 +6,19 @@ from auth_app.models import UserProfile
 class IsCustomerUser(BasePermission):
     def has_permission(self, request, view):
         profile = getattr(request.user, "profile", None)
-        return profile is not None and profile.type == UserProfile.UserType.CUSTOMER
+        return (
+            profile is not None
+            and profile.type == UserProfile.UserType.CUSTOMER
+        )
 
 
 class IsBusinessUser(BasePermission):
     def has_permission(self, request, view):
         profile = getattr(request.user, "profile", None)
-        return profile is not None and profile.type == UserProfile.UserType.BUSINESS
+        return (
+            profile is not None
+            and profile.type == UserProfile.UserType.BUSINESS
+        )
 
 
 class IsOrderBusinessUser(BasePermission):
