@@ -1,5 +1,4 @@
 from django.urls import path
-
 from rest_framework.routers import DefaultRouter
 
 from .views import (
@@ -7,7 +6,6 @@ from .views import (
     OrderCountView,
     OrderViewSet,
 )
-
 
 router = DefaultRouter()
 router.register("orders", OrderViewSet, basename="order")

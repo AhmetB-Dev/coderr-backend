@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,9 +23,7 @@ class OrderCountView(APIView):
     def get(self, request, business_user_id):
         """Return the number of in-progress orders for a business user."""
         business_user = get_object_or_404(
-            User.objects.filter(
-                profile__type=UserProfile.UserType.BUSINESS
-            ),
+            User.objects.filter(profile__type=UserProfile.UserType.BUSINESS),
             pk=business_user_id,
         )
         count = Order.objects.filter(
@@ -42,9 +39,7 @@ class CompletedOrderCountView(APIView):
     def get(self, request, business_user_id):
         """Return the number of completed orders for a business user."""
         business_user = get_object_or_404(
-            User.objects.filter(
-                profile__type=UserProfile.UserType.BUSINESS
-            ),
+            User.objects.filter(profile__type=UserProfile.UserType.BUSINESS),
             pk=business_user_id,
         )
         count = Order.objects.filter(
@@ -77,9 +72,7 @@ class OrderViewSet(ModelViewSet):
         """Select permissions required for the current order action."""
         permission_map = {
             "create": [IsAuthenticated, IsCustomerUser],
-            "partial_update": [
-                IsAuthenticated, IsOrderBusinessUser
-            ],
+            "partial_update": [IsAuthenticated, IsOrderBusinessUser],
             "destroy": [IsAuthenticated, IsStaffUser],
         }
         classes = permission_map.get(self.action, [IsAuthenticated])

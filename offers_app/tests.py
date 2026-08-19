@@ -2,14 +2,12 @@ from copy import deepcopy
 
 from django.contrib.auth.models import User
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from auth_app.models import UserProfile
 from offers_app.models import Offer, OfferDetail
-
 
 DETAIL_DATA = [
     {
@@ -80,10 +78,7 @@ class OfferApiTests(APITestCase):
         return offer
 
     def _create_details(self, offer):
-        details = [
-            OfferDetail(offer=offer, **data)
-            for data in deepcopy(DETAIL_DATA)
-        ]
+        details = [OfferDetail(offer=offer, **data) for data in deepcopy(DETAIL_DATA)]
         OfferDetail.objects.bulk_create(details)
 
     def _offer_payload(self):

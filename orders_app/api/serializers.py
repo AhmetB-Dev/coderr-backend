@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework import serializers
 
 from offers_app.models import OfferDetail
@@ -49,9 +48,7 @@ class OrderStatusSerializer(serializers.ModelSerializer):
         invalid_fields = set(self.initial_data) - {"status"}
 
         if invalid_fields:
-            raise serializers.ValidationError(
-                "Only the status field can be updated."
-            )
+            raise serializers.ValidationError("Only the status field can be updated.")
 
         return attrs
 

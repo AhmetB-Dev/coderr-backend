@@ -1,12 +1,10 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from auth_app.models import UserProfile
-
 
 REGISTRATION_DATA = {
     "username": "new_customer",
@@ -50,9 +48,7 @@ class AuthApiTests(APITestCase):
     def test_registration_creates_user_profile_and_token(self):
         response = self.client.post(reverse("registration"), REGISTRATION_DATA)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            User.objects.filter(username="new_customer").exists()
-        )
+        self.assertTrue(User.objects.filter(username="new_customer").exists())
         self.assertEqual(response.data["username"], "new_customer")
         self.assertIn("token", response.data)
 

@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
-
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -153,9 +152,7 @@ class OrderApiTests(APITestCase):
     def test_unknown_order_update_returns_404(self):
         self._authenticate(self.customer)
         url = reverse("order-detail", kwargs={"pk": 99999})
-        response = self.client.patch(
-            url, {"status": "completed"}, format="json"
-        )
+        response = self.client.patch(url, {"status": "completed"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_invalid_order_status_is_rejected(self):
