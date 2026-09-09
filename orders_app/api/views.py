@@ -1,4 +1,3 @@
-from auth_app.models import UserProfile
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -7,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
+from auth_app.models import UserProfile
 from orders_app.models import Order
 
 from .permissions import (

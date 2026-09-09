@@ -1,5 +1,6 @@
-from auth_app.models import UserProfile
 from rest_framework.permissions import BasePermission
+
+from auth_app.models import UserProfile
 
 
 class IsBusinessUser(BasePermission):

@@ -1,9 +1,10 @@
-from auth_app.models import UserProfile
 from django.contrib.auth.models import User
 from django.urls import reverse
-from offers_app.models import Offer
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+from auth_app.models import UserProfile
+from offers_app.models import Offer
 from reviews_app.models import Review
 
 
