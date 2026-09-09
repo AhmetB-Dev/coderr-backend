@@ -1,16 +1,12 @@
-from rest_framework.permissions import BasePermission
-
 from auth_app.models import UserProfile
+from rest_framework.permissions import BasePermission
 
 
 class IsCustomerUser(BasePermission):
     def has_permission(self, request, view):
         """Allow access only to authenticated customer profiles."""
         profile = getattr(request.user, "profile", None)
-        return (
-            profile is not None
-            and profile.type == UserProfile.UserType.CUSTOMER
-        )
+        return profile is not None and profile.type == UserProfile.UserType.CUSTOMER
 
 
 class IsReviewOwner(BasePermission):

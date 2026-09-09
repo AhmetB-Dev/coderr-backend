@@ -1,10 +1,9 @@
+from auth_app.models import UserProfile
 from django.contrib.auth.models import User
 from django.urls import reverse
+from offers_app.models import Offer
 from rest_framework import status
 from rest_framework.test import APITestCase
-
-from auth_app.models import UserProfile
-from offers_app.models import Offer
 from reviews_app.models import Review
 
 
@@ -63,3 +62,11 @@ class BaseInfoApiTests(APITestCase):
 
         self.assertEqual(response.data["review_count"], 1)
         self.assertEqual(response.data["average_rating"], 4.0)
+
+
+class HealthApiTests(APITestCase):
+    def test_health_is_public(self):
+        response = self.client.get(reverse("health"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {"status": "ok"})

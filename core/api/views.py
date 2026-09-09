@@ -1,10 +1,9 @@
+from auth_app.models import UserProfile
 from django.db.models import Avg
+from offers_app.models import Offer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from auth_app.models import UserProfile
-from offers_app.models import Offer
 from reviews_app.models import Review
 
 
@@ -25,3 +24,11 @@ class BaseInfoView(APIView):
                 "offer_count": Offer.objects.count(),
             }
         )
+
+
+class HealthView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """Return a lightweight process health response."""
+        return Response({"status": "ok"})

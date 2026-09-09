@@ -21,7 +21,7 @@ The project uses token-based authentication and communicates with the provided C
 Clone this backend repository using GitHub's **Code** button, then open the project directory:
 
 ```bash
-cd backend
+cd Coderr-backend
 ```
 
 ### 2. Create a virtual environment
@@ -146,12 +146,17 @@ This repository focuses on the backend implementation and its integration with t
 * Django 6.1
 * Django REST Framework 3.18
 * DRF Token Authentication
-* SQLite
+* SQLite for lightweight local development
+* PostgreSQL for Docker/production
 * Pillow
 * django-cors-headers
 * django-filter
 * python-dotenv
 * Coverage.py
+* Gunicorn
+* WhiteNoise
+* Docker / Docker Compose
+* GitHub Actions CI/CD
 
 ---
 
@@ -215,6 +220,9 @@ The project reads sensitive and environment-specific settings from a `.env` file
 | `DJANGO_SECRET_KEY`    | Secret key used by Django      | `your-secret-key`     |
 | `DJANGO_DEBUG`         | Enables or disables debug mode | `True`                |
 | `DJANGO_ALLOWED_HOSTS` | Comma-separated allowed hosts  | `127.0.0.1,localhost` |
+| `DJANGO_CORS_ALLOWED_ORIGINS` | Allowed frontend origins | `http://localhost:5500` |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | Trusted CSRF origins | `http://localhost:5500` |
+| `DB_HOST` | Enables PostgreSQL when configured | `db` |
 
 The `.env` file is ignored by Git and must not be uploaded to the repository.
 
@@ -518,3 +526,35 @@ Migration files are part of the source code and should remain in version control
 * Keep serializers responsible for validation and transformation.
 * Keep views focused on request and API logic.
 * Keep permissions focused on access control.
+
+
+---
+
+## Production and CI/CD
+
+Production uses Docker Compose with PostgreSQL and Gunicorn. CI/CD is delegated to
+the shared `AhmetB-Dev/django-devops-template@v1` reusable workflows. Pull requests
+run quality checks and the Django test stack; pushes to `main` additionally publish
+an immutable GHCR image and deploy through the protected `production` Environment.
+
+Relevant files:
+
+```text
+.github/workflows/cicd.yml
+Dockerfile
+compose.yaml
+compose.ci.yaml
+compose.prod.yaml
+docker/
+scripts/deploy.sh
+.env.production.example
+DEPLOYMENT.md
+```
+
+The lightweight health endpoint is available at:
+
+```text
+GET /api/health/
+```
+
+See `DEPLOYMENT.md` for the VPS, GitHub Actions, Nginx, and production setup.

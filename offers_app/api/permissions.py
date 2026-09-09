@@ -1,6 +1,5 @@
-from rest_framework.permissions import BasePermission
-
 from auth_app.models import UserProfile
+from rest_framework.permissions import BasePermission
 
 
 class IsBusinessUser(BasePermission):
@@ -8,10 +7,7 @@ class IsBusinessUser(BasePermission):
         """Allow access only to authenticated business profiles."""
         profile = getattr(request.user, "profile", None)
 
-        return (
-            profile is not None
-            and profile.type == UserProfile.UserType.BUSINESS
-        )
+        return profile is not None and profile.type == UserProfile.UserType.BUSINESS
 
 
 class IsOfferOwner(BasePermission):
