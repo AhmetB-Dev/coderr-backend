@@ -1,43 +1,77 @@
 # Coderr Backend
 
-Django REST Framework backend for a service marketplace with authentication, customer and business profiles, offers, orders, reviews and role-based permissions.
+**Production-ready REST API for a two-sided service marketplace.**
 
-[Live Demo](https://ahmet-balci.de/projects/coderr/) · [Provided Frontend](https://github.com/Developer-Akademie-Backendkurs/project.Coderr)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![DRF](https://img.shields.io/badge/Django_REST_Framework-API-A30000)](https://www.django-rest-framework.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Deployment-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-> The frontend was provided by Developer Akademie as part of the backend course. My work focuses on the backend implementation, REST API, permissions, data model, tests and deployment.
+[**Live Demo**](https://ahmet-balci.de/projects/coderr/) · [**Provided Frontend**](https://github.com/Developer-Akademie-Backendkurs/project.Coderr)
 
-## Highlights
+Coderr connects customers with business providers. Businesses publish tiered service offers, customers place orders, and completed work can be reviewed.
 
-- Django REST Framework API
-- Token-based authentication
-- Customer and business user roles
-- Role-based and ownership-based permissions
-- Offer management with Basic, Standard and Premium packages
+> The frontend was provided by Developer Akademie. I designed and implemented the backend, including the REST API, data model, validation, permissions, tests, containerization, CI/CD and deployment.
+
+## What makes this project interesting
+
+- **Two distinct user roles** with role-specific actions and protected resources
+- **Tiered offers** with Basic, Standard and Premium packages
+- **Immutable order snapshots** that preserve purchased offer details after an offer changes
+- **Ownership-based permissions** across profiles, offers, orders and reviews
+- **Production delivery** using Docker, PostgreSQL, Gunicorn, Nginx and GitHub Actions
+
+## Core features
+
+### Accounts and profiles
+
+- Registration and token-based login
+- Customer and business profiles
+- Profile editing and image uploads
+- Role-aware access rules
+
+### Offers and orders
+
+- Create, edit and delete business offers
+- Three pricing tiers per offer
 - Search, filtering, ordering and pagination
-- Order workflow with persisted offer snapshots
-- Review system with validation and permissions
-- PostgreSQL for Docker and production
-- Automated API tests and coverage support
-- Docker-based runtime
-- GitHub Actions CI/CD with reusable workflows
-- Production deployment with Gunicorn and Nginx
+- Create orders from a selected offer tier
+- Persist offer data as an order snapshot
+- Track orders as `in_progress`, `completed` or `cancelled`
 
-## Tech Stack
+### Reviews and platform data
+
+- Customers can review business users
+- Users can edit or delete only their own reviews
+- Public statistics for ratings, profiles and offers
+
+## Tech stack
 
 | Area | Technology |
 | --- | --- |
 | Backend | Python, Django, Django REST Framework |
 | Authentication | DRF Token Authentication |
-| Database | SQLite locally, PostgreSQL with Docker/production |
-| Filtering | django-filter |
+| Database | SQLite for local development, PostgreSQL with Docker and in production |
+| Querying | django-filter |
 | Media | Pillow |
-| Deployment | Docker, Gunicorn, Nginx |
-| CI/CD | GitHub Actions, GHCR |
 | Testing | Django Test Framework, Coverage.py |
+| Delivery | Docker, Gunicorn, Nginx, GitHub Actions, GHCR |
 
-## Quick Start
+## API overview
 
-### Local Python
+| Area | Main endpoints |
+| --- | --- |
+| Authentication | `/api/registration/`, `/api/login/` |
+| Profiles | `/api/profile/{id}/`, `/api/profiles/business/`, `/api/profiles/customer/` |
+| Offers | `/api/offers/`, `/api/offers/{id}/`, `/api/offerdetails/{id}/` |
+| Orders | `/api/orders/`, `/api/orders/{id}/` |
+| Reviews | `/api/reviews/`, `/api/reviews/{id}/` |
+| Operations | `/api/base-info/`, `/api/health/` |
+
+## Run locally
+
+### Python
 
 ```bash
 git clone https://github.com/AhmetB-Dev/coderr-backend.git
@@ -45,21 +79,21 @@ cd coderr-backend
 python -m venv .venv
 ```
 
-Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-Copy-Item .env.example .env
-```
-
-Linux/macOS:
+Activate the environment and create the local configuration:
 
 ```bash
+# Linux / macOS
 source .venv/bin/activate
 cp .env.example .env
 ```
 
-Then:
+```powershell
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+Copy-Item .env.example .env
+```
+
+Install and start:
 
 ```bash
 pip install -r requirements.txt
@@ -67,224 +101,33 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Local API:
-
-```text
-http://127.0.0.1:8000/api/
-```
-
-Django Admin:
-
-```text
-http://127.0.0.1:8000/admin/
-```
+The API is available at `http://127.0.0.1:8000/api/`.
 
 ### Docker
 
-After configuring `.env`:
-
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-The Docker development setup runs Django with PostgreSQL.
-
-### Run Tests
+## Tests and quality
 
 ```bash
 python manage.py test
 ```
 
-## Core Features
+The test suite covers authentication, permissions and the main offer, order and review workflows. CI also validates code quality and dependencies before deployment.
 
-### Authentication & Profiles
+## Security and deployment
 
-- User registration and login
-- Token-based authentication
-- Customer and business profiles
-- Profile editing
-- Profile image uploads
-
-### Offers
-
-Business users can create and manage offers with three pricing tiers:
-
-- Basic
-- Standard
-- Premium
-
-The offer list supports:
-
-- search
-- filtering
-- ordering
-- pagination
-
-### Orders
-
-Customers can create orders from offer details.
-
-Orders store a snapshot of the selected offer data so later changes to an offer do not modify existing orders.
-
-Supported states:
-
-- `in_progress`
-- `completed`
-- `cancelled`
-
-Business users can manage the status of their own orders.
-
-### Reviews
-
-Customers can review business users.
-
-The API supports filtering and ordering, while permissions restrict users to allowed review actions.
-
-### Platform Statistics
-
-The public platform-info endpoint returns aggregated values such as:
-
-- number of reviews
-- average rating
-- number of business profiles
-- number of offers
-
-## Roles & Permissions
-
-### Customer
-
-Customers can:
-
-- browse profiles and offers
-- create orders
-- access their related orders
-- create reviews
-- edit or delete their own reviews
-
-### Business
-
-Business users can:
-
-- create and manage their own offers
-- manage offer details
-- access their related orders
-- update the status of their own business orders
-
-### Staff
-
-Django staff users have additional administrative permissions, including access to Django Admin.
-
-## API Overview
-
-All application endpoints are available below `/api/`.
-
-### Authentication & Profiles
-
-```text
-POST  /api/registration/
-POST  /api/login/
-
-GET   /api/profile/{id}/
-PATCH /api/profile/{id}/
-
-GET   /api/profiles/business/
-GET   /api/profiles/customer/
-```
-
-### Offers
-
-```text
-GET    /api/offers/
-POST   /api/offers/
-GET    /api/offers/{id}/
-PATCH  /api/offers/{id}/
-DELETE /api/offers/{id}/
-
-GET    /api/offerdetails/{id}/
-```
-
-### Orders
-
-```text
-GET    /api/orders/
-POST   /api/orders/
-PATCH  /api/orders/{id}/
-DELETE /api/orders/{id}/
-
-GET /api/order-count/{business_user_id}/
-GET /api/completed-order-count/{business_user_id}/
-```
-
-### Reviews
-
-```text
-GET    /api/reviews/
-POST   /api/reviews/
-PATCH  /api/reviews/{id}/
-DELETE /api/reviews/{id}/
-```
-
-### Platform Information
-
-```text
-GET /api/base-info/
-GET /api/health/
-```
-
-## Tests
-
-Run all tests:
-
-```bash
-python manage.py test
-```
-
-Run individual app suites:
-
-```bash
-python manage.py test auth_app
-python manage.py test offers_app
-python manage.py test orders_app
-python manage.py test reviews_app
-python manage.py test core
-```
-
-Coverage:
-
-```bash
-coverage erase
-coverage run manage.py test
-coverage report -m
-```
-
-The tests cover authentication, permissions and the main offer, order and review workflows.
-
-## CI/CD
-
-Pull requests run the shared Django CI workflow.
-
-Pushes to `main` additionally:
-
-- build and publish an immutable container image
-- pass through the protected production environment
-- deploy the selected image to the VPS
-
-The workflow uses the reusable CI/CD workflows from `AhmetB-Dev/django-devops-template`.
-
-Production details are documented in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
-
-## Security
-
-The backend uses:
-
-- token-based authentication
-- role-specific permissions
-- ownership checks for protected resources
-- serializer validation
-- environment-based secrets
-- CORS and CSRF configuration
-- production-specific Django settings
+- Server-side serializer validation
+- Role- and ownership-based authorization
+- Environment-based secrets
+- Production-specific CORS, CSRF and Django settings
 - PostgreSQL in the containerized production environment
+- Immutable production images published through GHCR
+
+Detailed production instructions are available in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ---
 
