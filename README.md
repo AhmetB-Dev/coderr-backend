@@ -1,254 +1,184 @@
 # Coderr Backend
 
-Coderr Backend is a REST API built with Django and Django REST Framework.
+Django REST Framework backend for a service marketplace with authentication, customer and business profiles, offers, orders, reviews and role-based permissions.
 
-This repository contains my backend implementation for the Coderr project. The frontend was provided by the **Developer Akademie** as part of the Backend course and was not developed by me.
+[Live Demo](https://ahmet-balci.de/projects/coderr/) · [Provided Frontend](https://github.com/Developer-Akademie-Backendkurs/project.Coderr)
 
-Frontend repository:
+> The frontend was provided by Developer Akademie as part of the backend course. My work focuses on the backend implementation, REST API, permissions, data model, tests and deployment.
 
-[Developer Akademie – project.Coderr](https://github.com/Developer-Akademie-Backendkurs/project.Coderr)
+## Highlights
 
-It provides the backend functionality for the Coderr platform, including authentication, customer and business profiles, offers, orders, reviews, platform statistics, media uploads, and role-based permissions.
+- Django REST Framework API
+- Token-based authentication
+- Customer and business user roles
+- Role-based and ownership-based permissions
+- Offer management with Basic, Standard and Premium packages
+- Search, filtering, ordering and pagination
+- Order workflow with persisted offer snapshots
+- Review system with validation and permissions
+- PostgreSQL for Docker and production
+- Automated API tests and coverage support
+- Docker-based runtime
+- GitHub Actions CI/CD with reusable workflows
+- Production deployment with Gunicorn and Nginx
 
-The project uses token-based authentication and communicates with the provided Coderr frontend through a REST API.
+## Tech Stack
 
----
+| Area | Technology |
+| --- | --- |
+| Backend | Python, Django, Django REST Framework |
+| Authentication | DRF Token Authentication |
+| Database | SQLite locally, PostgreSQL with Docker/production |
+| Filtering | django-filter |
+| Media | Pillow |
+| Deployment | Docker, Gunicorn, Nginx |
+| CI/CD | GitHub Actions, GHCR |
+| Testing | Django Test Framework, Coverage.py |
 
 ## Quick Start
 
-### 1. Get the repository
-
-Clone this backend repository using GitHub's **Code** button, then open the project directory:
+### Local Python
 
 ```bash
-cd Coderr-backend
-```
-
-### 2. Create a virtual environment
-
-```bash
+git clone https://github.com/AhmetB-Dev/coderr-backend.git
+cd coderr-backend
 python -m venv .venv
 ```
 
-Activate it on Windows:
+Windows PowerShell:
 
-```bash
-.venv\Scripts\activate
+```powershell
+.\.venv\Scripts\Activate.ps1
+Copy-Item .env.example .env
 ```
 
-Activate it on Linux or macOS:
+Linux/macOS:
 
 ```bash
 source .venv/bin/activate
+cp .env.example .env
 ```
 
-### 3. Install dependencies
+Then:
 
 ```bash
 pip install -r requirements.txt
-```
-
-### 4. Configure environment variables
-
-Create a `.env` file in the project root directory.
-
-You can use `.env.example` as a template:
-
-```env
-DJANGO_SECRET_KEY=your-secret-key
-DJANGO_DEBUG=True
-DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
-```
-
-Generate a secure Django secret key with:
-
-```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-Never commit the real `.env` file to version control.
-
-### 5. Apply database migrations
-
-```bash
 python manage.py migrate
-```
-
-### 6. Create an administrator
-
-This step is optional, but required if you want to use the Django admin interface.
-
-```bash
-python manage.py createsuperuser
-```
-
-### 7. Start the development server
-
-```bash
 python manage.py runserver
 ```
 
-The API is available at:
+Local API:
 
 ```text
 http://127.0.0.1:8000/api/
 ```
 
-The Django admin interface is available at:
+Django Admin:
 
 ```text
 http://127.0.0.1:8000/admin/
 ```
 
----
+### Docker
 
-## Frontend
+After configuring `.env`:
 
-The Coderr frontend was provided by the **Developer Akademie** as part of the Backend course.
+```bash
+docker compose up --build
+```
 
-It is maintained separately from this backend repository and communicates with the backend through the REST API.
+The Docker development setup runs Django with PostgreSQL.
 
-Frontend repository:
+### Run Tests
 
-[Developer Akademie – project.Coderr](https://github.com/Developer-Akademie-Backendkurs/project.Coderr)
+```bash
+python manage.py test
+```
 
-This repository focuses on the backend implementation and its integration with the provided frontend.
+## Core Features
 
----
+### Authentication & Profiles
 
-## Features
+- User registration and login
+- Token-based authentication
+- Customer and business profiles
+- Profile editing
+- Profile image uploads
 
-* User registration and login
-* Token-based authentication
-* Customer and business user profiles
-* Profile editing and profile image uploads
-* Business offer creation and management
-* Basic, standard, and premium offer packages
-* Offer search, filtering, ordering, and pagination
-* Customer order creation
-* Order status management
-* Business order statistics
-* Customer reviews
-* Review filtering and ordering
-* Platform-wide statistics
-* Role-based permissions
-* Staff-only administrative actions
-* Django admin interface
-* Media file handling
-* CORS support for frontend integration
-* Automated API tests
+### Offers
 
----
+Business users can create and manage offers with three pricing tiers:
 
-## Tech Stack
+- Basic
+- Standard
+- Premium
 
-* Python
-* Django 6.1
-* Django REST Framework 3.18
-* DRF Token Authentication
-* SQLite for lightweight local development
-* PostgreSQL for Docker/production
-* Pillow
-* django-cors-headers
-* django-filter
-* python-dotenv
-* Coverage.py
-* Gunicorn
-* WhiteNoise
-* Docker / Docker Compose
-* GitHub Actions CI/CD
+The offer list supports:
 
----
+- search
+- filtering
+- ordering
+- pagination
 
-## User Roles and Permissions
+### Orders
 
-Coderr uses two application-specific profile types in addition to Django staff permissions.
+Customers can create orders from offer details.
+
+Orders store a snapshot of the selected offer data so later changes to an offer do not modify existing orders.
+
+Supported states:
+
+- `in_progress`
+- `completed`
+- `cancelled`
+
+Business users can manage the status of their own orders.
+
+### Reviews
+
+Customers can review business users.
+
+The API supports filtering and ordering, while permissions restrict users to allowed review actions.
+
+### Platform Statistics
+
+The public platform-info endpoint returns aggregated values such as:
+
+- number of reviews
+- average rating
+- number of business profiles
+- number of offers
+
+## Roles & Permissions
 
 ### Customer
 
 Customers can:
 
-* view profiles
-* view offers and offer details
-* create orders from offer details
-* view orders related to their account
-* create reviews for business users
-* edit or delete their own reviews
+- browse profiles and offers
+- create orders
+- access their related orders
+- create reviews
+- edit or delete their own reviews
 
 ### Business
 
 Business users can:
 
-* view profiles
-* create offers
-* edit and delete their own offers
-* manage the details of their own offers
-* view orders related to their account
-* update the status of their own business orders
+- create and manage their own offers
+- manage offer details
+- access their related orders
+- update the status of their own business orders
 
 ### Staff
 
-Django staff users have additional administrative permissions.
-
-Staff users can:
-
-* access the Django admin interface
-* delete orders through the API
-
----
-
-## Project Structure
-
-The backend is organized into multiple Django apps:
-
-* `auth_app` – authentication and user profiles
-* `offers_app` – offers and offer details
-* `orders_app` – orders and order statistics
-* `reviews_app` – reviews
-* `core` – project-wide configuration and shared endpoints
-
-Each app keeps API-related code inside its own `api/` directory, including serializers, views, permissions, and URL configuration.
-
----
-
-## Environment Variables
-
-The project reads sensitive and environment-specific settings from a `.env` file.
-
-| Variable               | Description                    | Example               |
-| ---------------------- | ------------------------------ | --------------------- |
-| `DJANGO_SECRET_KEY`    | Secret key used by Django      | `your-secret-key`     |
-| `DJANGO_DEBUG`         | Enables or disables debug mode | `True`                |
-| `DJANGO_ALLOWED_HOSTS` | Comma-separated allowed hosts  | `127.0.0.1,localhost` |
-| `DJANGO_CORS_ALLOWED_ORIGINS` | Allowed frontend origins | `http://localhost:5500` |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | Trusted CSRF origins | `http://localhost:5500` |
-| `DB_HOST` | Enables PostgreSQL when configured | `db` |
-
-The `.env` file is ignored by Git and must not be uploaded to the repository.
-
----
-
-## Authentication
-
-Protected API endpoints use Django REST Framework token authentication.
-
-After a successful registration or login, the API returns an authentication token.
-
-Send the token in the `Authorization` header:
-
-```text
-Authorization: Token <your-token>
-```
-
-Public endpoints do not require this header.
-
----
+Django staff users have additional administrative permissions, including access to Django Admin.
 
 ## API Overview
 
 All application endpoints are available below `/api/`.
 
-### Authentication and Profiles
+### Authentication & Profiles
 
 ```text
 POST  /api/registration/
@@ -273,27 +203,6 @@ DELETE /api/offers/{id}/
 GET    /api/offerdetails/{id}/
 ```
 
-The offer list supports search, filtering, ordering, and pagination.
-
-Supported query parameters include:
-
-```text
-creator_id
-min_price
-max_delivery_time
-ordering
-search
-page_size
-```
-
-Business users create offers with exactly three offer details:
-
-```text
-basic
-standard
-premium
-```
-
 ### Orders
 
 ```text
@@ -306,16 +215,6 @@ GET /api/order-count/{business_user_id}/
 GET /api/completed-order-count/{business_user_id}/
 ```
 
-Orders are created from an existing offer detail. The order stores a snapshot of the selected offer detail so later offer changes do not change existing orders.
-
-Supported order statuses are:
-
-```text
-in_progress
-completed
-cancelled
-```
-
 ### Reviews
 
 ```text
@@ -325,117 +224,22 @@ PATCH  /api/reviews/{id}/
 DELETE /api/reviews/{id}/
 ```
 
-Customers can create one review per business user.
-
-The review list supports filtering by:
-
-```text
-business_user_id
-reviewer_id
-```
-
-and ordering by:
-
-```text
-updated_at
-rating
-```
-
 ### Platform Information
 
 ```text
 GET /api/base-info/
+GET /api/health/
 ```
 
-This public endpoint returns aggregated platform information such as:
+## Tests
 
-* review count
-* average rating
-* business profile count
-* offer count
-
----
-
-## Offer Pagination
-
-The offer list uses page-number pagination.
-
-The default page size is configured by the backend, while clients can request a different size with the `page_size` query parameter.
-
-Example:
-
-```text
-GET /api/offers/?page_size=6
-```
-
----
-
-## Media Files
-
-Profile images and offer images are stored as media files.
-
-During local development they are served through Django when debug mode is enabled.
-
-The project uses:
-
-```text
-MEDIA_URL=/media/
-```
-
-Uploaded media files are ignored by Git.
-
----
-
-## CORS and Frontend Integration
-
-CORS is configured for the local Coderr frontend.
-
-The default allowed development origins are:
-
-```text
-http://127.0.0.1:5500
-http://localhost:5500
-```
-
-If the frontend runs on a different host or port, update `CORS_ALLOWED_ORIGINS` in `core/settings.py`.
-
-The backend API runs locally at:
-
-```text
-http://127.0.0.1:8000/api/
-```
-
----
-
-## Django Admin
-
-The project uses Django's administration interface for managing application data.
-
-Create an administrator with:
-
-```bash
-python manage.py createsuperuser
-```
-
-Then start the server and open:
-
-```text
-http://127.0.0.1:8000/admin/
-```
-
-The admin interface provides access to users, profiles, authentication tokens, offers, offer details, orders, and reviews.
-
----
-
-## Testing
-
-Run the complete automated test suite with:
+Run all tests:
 
 ```bash
 python manage.py test
 ```
 
-Run a specific application test suite with:
+Run individual app suites:
 
 ```bash
 python manage.py test auth_app
@@ -445,17 +249,7 @@ python manage.py test reviews_app
 python manage.py test core
 ```
 
-Check the Django project configuration with:
-
-```bash
-python manage.py check
-```
-
----
-
-## Test Coverage
-
-Run the test suite with Coverage.py:
+Coverage:
 
 ```bash
 coverage erase
@@ -463,98 +257,35 @@ coverage run manage.py test
 coverage report -m
 ```
 
-An HTML coverage report can also be generated with:
+The tests cover authentication, permissions and the main offer, order and review workflows.
 
-```bash
-coverage html
-```
+## CI/CD
 
-The generated coverage files should not be committed to the repository.
+Pull requests run the shared Django CI workflow.
 
----
+Pushes to `main` additionally:
 
-## Database
+- build and publish an immutable container image
+- pass through the protected production environment
+- deploy the selected image to the VPS
 
-The development environment uses SQLite.
+The workflow uses the reusable CI/CD workflows from `AhmetB-Dev/django-devops-template`.
 
-Create or update the local database with:
+Production details are documented in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
-```bash
-python manage.py migrate
-```
+## Security
 
-The database file is intentionally excluded from version control.
+The backend uses:
 
-Do not commit:
-
-```text
-db.sqlite3
-```
-
----
-
-## Git and Repository Notes
-
-This repository contains only the backend implementation.
-
-The following local or generated files are excluded from Git:
-
-```text
-.venv/
-.env
-db.sqlite3
-media/
-__pycache__/
-*.pyc
-.coverage
-coverage.xml
-```
-
-Migration files are part of the source code and should remain in version control.
+- token-based authentication
+- role-specific permissions
+- ownership checks for protected resources
+- serializer validation
+- environment-based secrets
+- CORS and CSRF configuration
+- production-specific Django settings
+- PostgreSQL in the containerized production environment
 
 ---
 
-## Development Notes
-
-* Keep secrets outside the source code.
-* Keep the backend and frontend in separate repositories.
-* Do not commit the SQLite database.
-* Do not commit uploaded media files.
-* Keep migrations in version control.
-* Use the API documentation as the source of truth for endpoint behavior.
-* Use role-specific permissions for protected actions.
-* Keep serializers responsible for validation and transformation.
-* Keep views focused on request and API logic.
-* Keep permissions focused on access control.
-
-
----
-
-## Production and CI/CD
-
-Production uses Docker Compose with PostgreSQL and Gunicorn. CI/CD is delegated to
-the shared `AhmetB-Dev/django-devops-template@v1` reusable workflows. Pull requests
-run quality checks and the Django test stack; pushes to `main` additionally publish
-an immutable GHCR image and deploy through the protected `production` Environment.
-
-Relevant files:
-
-```text
-.github/workflows/cicd.yml
-Dockerfile
-compose.yaml
-compose.ci.yaml
-compose.prod.yaml
-docker/
-scripts/deploy.sh
-.env.production.example
-DEPLOYMENT.md
-```
-
-The lightweight health endpoint is available at:
-
-```text
-GET /api/health/
-```
-
-See `DEPLOYMENT.md` for the VPS, GitHub Actions, Nginx, and production setup.
+Built as part of my Fullstack Developer portfolio.
